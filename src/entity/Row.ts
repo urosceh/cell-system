@@ -1,13 +1,38 @@
+import { eventManager } from "../event/EventManager";
 import { Cell } from "./Cell";
 
 export class Row {
   private _cells: Cell[];
   private _outputs: Record<number, number>;
+  /* 
+    dependencies will be key,value where value is all the indexes thet depend on that key
+    e.g. 
+      if row 1 formula is ={0}+2 then 0: 1
+      and row 5 formula is ={0}+{4}*2 then 0: 1,5 and 4: 5 
+  */
+  private _dependencies: Record<number, number[]> = {};
 
   constructor(inputs: string[]) {
     // handle error thrown from Cell
     this._cells = inputs.map((input, index) => new Cell(input, index));
     this._outputs = this.calculateOutputs();
+
+    eventManager.onChange(({ index, newValue }) => {
+      // this means _outputs[index] has changed
+      // get all cells that depend on this index
+      const dependents = this._dependencies[index] || [];
+
+      // recalculate their outputs
+      for (const dependentIndex of dependents) {
+        const oldValue = this._outputs[dependentIndex];
+        this._outputs[dependentIndex] = this._cells[dependentIndex].recalculateFormula(this._outputs);
+
+        // emit change event for each dependent if changed
+        if (this._outputs[dependentIndex] !== oldValue) {
+          eventManager.emitChange(dependentIndex, this._outputs[dependentIndex].toString());
+        }
+      }
+    });
   }
 
   public changeValue(index: number, newValue: string): void {
@@ -16,9 +41,16 @@ export class Row {
     }
 
     try {
-      const cell = new Cell(newValue, index);
-      this._cells[index] = cell;
-      this._outputs = this.calculateOutputs();  
+      if (!isNaN(Number(newValue))) {
+        this._cells[index] = new Cell(newValue, index);
+        this._outputs[index] = this._cells[index].getOutput(this._outputs);
+        eventManager.emitChange(index, newValue);
+      } else {
+        throw new Error("Temp")
+        // const cell = new Cell(newValue, index);
+        // this._cells[index] = cell;
+        // this._outputs = this.calculateOutputs();
+      }
     } catch (error: any) {
       throw new Error(`No changes made to the row. Error changing value at index ${index}: ${error.message}`);
     }
@@ -28,6 +60,12 @@ export class Row {
     const outputs: Record<number, number> = {};
     for (let i = 0; i < this._cells.length; i++) {
       outputs[i] = this._cells[i].getOutput(outputs);
+      for (const index of this._cells[i].indexes) {
+        if (!this._dependencies[index]) {
+          this._dependencies[index] = [];
+        }
+        this._dependencies[index].push(i);
+      }
     }
     return outputs;
   }

@@ -1,6 +1,7 @@
 export class Cell {
   private _currentIndex: number;
   private _input: string;
+  private _indexes: number[] = [];
 
   constructor(value: string, currentIndex: number) {
     this._currentIndex = currentIndex;
@@ -12,12 +13,20 @@ export class Cell {
     }
   }
 
+  public get indexes(): number[] {
+    return this._indexes;
+  }
+
   public getOutput(indexValueMap: Record<number, number>): number {
     if (!isNaN(Number(this._input))) {
       return Number(this._input);
     } else {
       return this.executeFormula(indexValueMap);
     }
+  }
+
+  public recalculateFormula(indexValueMap: Record<number, number>): number {
+    return this.executeFormula(indexValueMap);
   }
 
   private validateFormula(input: string): string {
@@ -33,6 +42,8 @@ export class Cell {
 
     const matches = [...input.matchAll(/\{(\d+)\}/g)];
     const indexes = matches.map((match) => Number(match[1]));
+
+    this._indexes = [...new Set(indexes)];
 
     if (indexes.some((index) => index > this._currentIndex)) {
       throw new Error(`Invalid formula: ${input}. Cannot reference future cells.`);
