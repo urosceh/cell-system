@@ -41,18 +41,10 @@ export class Row {
     }
 
     try {
-      if (!isNaN(Number(newValue))) {
-        this._cells[index] = new Cell(newValue, index);
-        this._outputs[index] = this._cells[index].getOutput(this._outputs);
-        eventManager.emitChange(index);
-      } else {
-        // this is a formula
-        // this._outputs already has all the needed values
-        const cell = new Cell(newValue, index);
-        this._cells[index] = cell;
-        this._outputs[index] = cell.getOutput(this._outputs);
-        eventManager.emitChange(index);
-      }
+      const cell = new Cell(newValue, index);
+      this._cells[index] = cell;
+      this._outputs[index] = cell.getOutput(this._outputs);
+      eventManager.emitChange(index);
     } catch (error: any) {
       throw new Error(`No changes made to the row. Error changing value at index ${index}: ${error.message}`);
     }
