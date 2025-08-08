@@ -1,7 +1,6 @@
 export class Cell {
   private _currentIndex: number;
   private _input: string;
-  private _output?: number;
 
   constructor(value: string, currentIndex: number) {
     this._currentIndex = currentIndex;

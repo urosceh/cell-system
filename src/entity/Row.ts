@@ -15,9 +15,13 @@ export class Row {
       throw new Error(`Index ${index} is out of bounds.`);
     }
 
-    const cell = new Cell(newValue, index);
-    this._cells[index] = cell;
-    this._outputs = this.calculateOutputs();
+    try {
+      const cell = new Cell(newValue, index);
+      this._cells[index] = cell;
+      this._outputs = this.calculateOutputs();  
+    } catch (error: any) {
+      throw new Error(`No changes made to the row. Error changing value at index ${index}: ${error.message}`);
+    }
   }
 
   private calculateOutputs(): Record<number, number> {

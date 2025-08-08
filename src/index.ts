@@ -41,9 +41,9 @@ function main() {
       const newValue = parts[2];
       try {
         row.changeValue(index, newValue);
-        console.log(`Changed value at index ${index} to "${newValue}".`);
-      } catch (error) {
-        console.error(error);
+        console.log(`Cell #${index} changed to "${newValue}".`);
+      } catch (error: any) {
+        console.error("No changes made to row: ", error.message);
       }
     } else if (input === 'q') {
       console.log('Quitting...');
