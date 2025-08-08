@@ -17,7 +17,7 @@ export class Row {
     this._cells = inputs.map((input, index) => new Cell(input, index));
     this._outputs = this.calculateOutputs();
 
-    eventManager.onChange(({ index, newValue }) => {
+    eventManager.onChange(({ index }) => {
       // this means _outputs[index] has changed
       // get all cells that depend on this index
       const dependents = this._dependencies[index] || [];
@@ -29,7 +29,7 @@ export class Row {
 
         // emit change event for each dependent if changed
         if (this._outputs[dependentIndex] !== oldValue) {
-          eventManager.emitChange(dependentIndex, this._outputs[dependentIndex].toString());
+          eventManager.emitChange(dependentIndex);
         }
       }
     });
@@ -44,12 +44,14 @@ export class Row {
       if (!isNaN(Number(newValue))) {
         this._cells[index] = new Cell(newValue, index);
         this._outputs[index] = this._cells[index].getOutput(this._outputs);
-        eventManager.emitChange(index, newValue);
+        eventManager.emitChange(index);
       } else {
-        throw new Error("Temp")
-        // const cell = new Cell(newValue, index);
-        // this._cells[index] = cell;
-        // this._outputs = this.calculateOutputs();
+        // this is a formula
+        // this._outputs already has all the needed values
+        const cell = new Cell(newValue, index);
+        this._cells[index] = cell;
+        this._outputs[index] = cell.getOutput(this._outputs);
+        eventManager.emitChange(index);
       }
     } catch (error: any) {
       throw new Error(`No changes made to the row. Error changing value at index ${index}: ${error.message}`);
