@@ -14,14 +14,11 @@ export class Cell {
   }
 
   public getOutput(indexValueMap: Record<number, number>): number {
-    if (this._output === undefined) {
-      if (!isNaN(Number(this._input))) {
-        this._output = Number(this._input);
-      } else {
-        this._output = this.executeFormula(indexValueMap);
-      }
+    if (!isNaN(Number(this._input))) {
+      return Number(this._input);
+    } else {
+      return this.executeFormula(indexValueMap);
     }
-    return this._output;
   }
 
   private validateFormula(input: string): string {
@@ -33,7 +30,7 @@ export class Cell {
       throw new Error(`Invalid formula: ${input}. Expected format: = <number> [<operator> <number>]*`);
     }
 
-    console.log('TEST: ', test, input);
+    // console.log('TEST: ', test, input);
 
     const matches = [...input.matchAll(/\{(\d+)\}/g)];
     const indexes = matches.map((match) => Number(match[1]));
@@ -66,7 +63,7 @@ export class Cell {
     const formula = parts[1];
     const tokens = formula.split(/([+\-*/])/).map((token) => token.trim());
 
-    console.log('TOKENS: ', tokens);
+    // console.log('TOKENS: ', tokens);
 
     let result = getValue(tokens[0]);
 
